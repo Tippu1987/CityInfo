@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using NLog.Web;
+using System;
 
 namespace CityInfo.API
 {
@@ -13,14 +9,26 @@ namespace CityInfo.API
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            var logger = NLogBuilder.ConfigureNLog("nlog.config")
+                   .GetCurrentClassLogger();
+            try
+            {
+                logger.Info($"Initializing Application....");
+                CreateHostBuilder(args).Build().Run();
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"Application stopped because of an Exception");
+                throw;
+            }
+            
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>();
+                    webBuilder.UseStartup<Startup>().UseNLog();
                 });
     }
 }

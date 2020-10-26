@@ -1,8 +1,9 @@
 ﻿using CityInfo.API.Models;
+using CityInfo.API.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 
 namespace CityInfo.API.Controllers
 {
@@ -10,12 +11,27 @@ namespace CityInfo.API.Controllers
     [Route("api/cities/{cityId}/pointsofinterest")]
     public class PointsOfInterestController:ControllerBase
     {
+        private readonly ILogger<PointsOfInterestController> _logger;
+        private readonly IMailService _mailService;
+
+        public PointsOfInterestController(ILogger<PointsOfInterestController> logger,
+            IMailService mailService)
+        {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _mailService = mailService ?? throw new ArgumentNullException(nameof(mailService));
+        }
+
+
         [HttpGet]
         public IActionResult GetPointsOfInterestForCity(int cityId)
         {
             var city = CitiesDataStore.Current.Cities.FirstOrDefault(x => x.Id == cityId);
             if (city == null)
+            {
+                _logger.LogInformation($"City with {cityId} is not found");
                 return NotFound();
+            }
+                
             else
                 return Ok(city.PointsOfInterest);
         }
@@ -83,6 +99,7 @@ namespace CityInfo.API.Controllers
             if (city == null || poi == null)
                 return BadRequest();
             city.PointsOfInterest.Remove(poi);
+            _mailService.Send($"Points of Interest Removed", $"Point Of Interest with Id {poi.Name} removed from City {cityId}");
             return NoContent();
         }
     }
