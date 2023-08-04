@@ -20,10 +20,8 @@ namespace CityInfo.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers(options =>
-            {
-                options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
-            }).AddJsonOptions(c => c.JsonSerializerOptions.PropertyNamingPolicy = null);
+            services.AddControllers().
+            AddNewtonsoftJson();
             services.AddSwaggerGen();
 
 #if DEBUG

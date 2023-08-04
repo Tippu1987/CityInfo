@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CityInfo.API.Models;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 
 namespace CityInfo.API.Controllers
@@ -22,6 +24,15 @@ namespace CityInfo.API.Controllers
                 return NotFound();
             else
                 return Ok(city);
+        }
+
+        [HttpPatch]
+        [Route("{cityId}")]
+        public IActionResult PatchCity([FromBody] JsonPatchDocument<CityDTO> cityModel, [FromRoute] int cityId)
+        {
+            var city = CitiesDataStore.Current.Cities.FirstOrDefault(x => x.Id == cityId);
+            cityModel.ApplyTo(city);
+            return Ok();
         }
     }
 }
